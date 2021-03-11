@@ -139,11 +139,11 @@ video {
 #video:after {
   content: '';
   opacity: 0.75;
-  background: #BE03FD; /* Old browsers */
-  background: -moz-linear-gradient(top, #BE03FD 0%, #FFD4D7 100%); /* FF3.6-15 */
-  background: -webkit-linear-gradient(top, #BE03FD 0%,#FFD4D7 100%); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to bottom, #BE03FD 0%,#FFD4D7 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#BE03FD', endColorstr='#FFD4D7',GradientType=0 ); /* IE6-9 */
+  background: #540875; /* Old browsers */
+  background: -moz-linear-gradient(top, #540875 0%, #BC45EE 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, #540875 0%,#BC45EE 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, #540875 0%,#BC45EE 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#540875', endColorstr='#BC45EE',GradientType=0 ); /* IE6-9 */
   position:fixed;
   left:0;
   top:0;
@@ -223,10 +223,10 @@ video {
   flex: 1 0 auto;
 }
 .preloader {
-  background: -moz-linear-gradient(top, #BE03FD 0%, #FFD4D7 100%); /* FF3.6-15 */
-  background: -webkit-linear-gradient(top, #BE03FD 0%,#FFD4D7 100%); /* Chrome10-25,Safari5.1-6 */
-  background: linear-gradient(to bottom, #BE03FD 0%,#FFD4D7 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#BE03FD', endColorstr='#FFD4D7',GradientType=0 ); /* IE6-9 */
+  background: -moz-linear-gradient(top, #540875 0%, #BC45EE 100%); /* FF3.6-15 */
+  background: -webkit-linear-gradient(top, #540875 0%,#BC45EE 100%); /* Chrome10-25,Safari5.1-6 */
+  background: linear-gradient(to bottom, #540875 0%,#BC45EE 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#540875', endColorstr='#BC45EE',GradientType=0 ); /* IE6-9 */
   height: 100%;
   left: 0;
   position: fixed;
@@ -308,7 +308,7 @@ video {
 }
 a#logo {
   text-decoration: none;
-  font-size: 32px;
+  font-size: 20px;
   text-transform: uppercase;
   font-weight: 700;
 }
@@ -365,9 +365,9 @@ a#logo {
 #social-icons {
   padding:0;
   position: fixed;
-  top: 50%;
+  top: 30%;/* que tan arriba irían los iconos */
   transform: translateY(-50%);
-  right:0;
+  left:0; /* para ponerlo a la derecha escribir "right" */
   z-index: 199;
 }
 .social-icons {
@@ -380,14 +380,14 @@ a#logo {
   margin: 1px 0px;
 }
 .social-icons li a {
-  width:50px;
-  height:50px;
+  width:100px;/* tamaño fondo iconos */
+  height:100px;
   display:inline-block;
-  line-height:50px;
+  line-height:100px;
   text-align:center;
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255,255,255,1);
-  font-size:18px;
+  font-size:70px;/* tamaño icono */
 }
 .social-icons li a:hover {
   color:#1e1e1e;
@@ -416,7 +416,7 @@ a#logo {
 }
 .welcome-title {
   font-weight: 700;
-  font-size: 120px;
+  font-size: 120px; /* tamaño de letra */
   margin-bottom: 10px;
   letter-spacing:0.02em;
 }
@@ -464,7 +464,7 @@ a#logo {
 }
 .about-contentbox {
   margin-top: 80px;
-  text-align:left;
+  text-align:center;
   line-height:1.8;
 }
 .about-contentbox span {
