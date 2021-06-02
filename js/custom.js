@@ -155,7 +155,7 @@
         if ($('.fullpage-default').length) {
             var myFullpage = new fullpage('.fullpage-default', {
                 licenseKey: ' C7F41B00-5E824594-9A5EFB99-B556A3D5',
-                anchors: ['home', 'about', 'slide03', 'slide04', 'mat-info', 'slide05', 'slide06', 'slide07'],
+                anchors: ['home', 'about', 'about2','testimonios', 'material-informativo',  'calendario', 'contacto',],
                 menu: '#nav',
                 lazyLoad: true,
                 navigation: true,
@@ -200,3 +200,16 @@
         });
     });
 })(jQuery, window, document);
+
+/* Lightbox - Magnific Popup */
+$('.popup-with-move-anim').magnificPopup({
+    type: 'inline',
+    fixedContentPos: false, /* keep it false to avoid html tag shift with margin-right: 17px */
+    fixedBgPos: true,
+    overflowY: 'auto',
+    closeBtnInside: true,
+    preloader: false,
+    midClick: true,
+    removalDelay: 300,
+    mainClass: 'my-mfp-slide-bottom'
+});
