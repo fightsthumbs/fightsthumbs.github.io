@@ -1,0 +1,35 @@
+
+
+.intro {
+    color: aliceblue;
+    text-shadow: darkgreen;
+    box-shadow: darkkhaki;
+    background-color:#4c4c5a;
+    align-content: center;
+    text-align: center;
+    margin: 20px;
+    padding: 20px;
+}
+
+p {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: #459459;
+    padding: 20px;
+    margin: 30px;
+}
+
+
+h2 {
+    background-color: blue;
+}
+
+#demo {
+    color:darkgray;
+    background-color: crimson;
+}
+
+ol {
+    border: black;
+    border-color: black;
+    border-radius: 10px;
+}
