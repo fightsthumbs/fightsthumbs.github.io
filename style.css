@@ -1,35 +1,81 @@
-
-
-.intro {
-    color: aliceblue;
-    text-shadow: darkgreen;
-    box-shadow: darkkhaki;
-    background-color:#4c4c5a;
-    align-content: center;
-    text-align: center;
-    margin: 20px;
-    padding: 20px;
+.menusito ul {
+  overflow: hidden;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  background-color: #47344e;
 }
 
-p {
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-    background-color: #459459;
-    padding: 20px;
-    margin: 30px;
+.menusito li {
+  float: left;
+  background-color: blue;
 }
 
+.menusito li a {
+  display: inline-block;
+  color: white;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.menusito li a:hover {
+  background-color: #d670a0;
+}
+
+.menusito .active {
+  background-color: #47344e;
+  font-size: 12px;
+}
+
+body {
+  color: #4f86ce;
+  background-color: whitesmoke;
+}
+
+body button {
+  display: inline-block;
+  background-color: #d670a0;
+  border-radius: 10px;
+  border: 4px double #cccccc;
+  color: #eeeeee;
+  text-align: center;
+  font-size: 28px;
+  padding: 20px;
+  width: 200px;
+  -webkit-transition: all 0.5s;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin: 5px;
+}
+
+body button:hover {
+  background-color: #4f86ce;
+}
 
 h2 {
-    background-color: blue;
+  background-color: #d670a0;
+  color: #4f86ce;
+  margin: 25px;
+  padding: 5px;
+  text-align: center;
 }
 
 #demo {
-    color:darkgray;
-    background-color: crimson;
+  color: darkgray;
+  background-color: #d670a0;
 }
 
 ol {
-    border: black;
-    border-color: black;
-    border-radius: 10px;
+  border: black;
+  border-color: black;
+  border-radius: 10px;
 }
+
+p {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  background-color: #459459;
+  padding: 20px;
+  margin: 30px;
+}
+/*# sourceMappingURL=style.css.map */

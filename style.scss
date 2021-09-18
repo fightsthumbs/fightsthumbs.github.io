@@ -1,0 +1,97 @@
+$fondo2: rgb(71, 52, 78);
+$colorFavorito: rgb(214, 112, 160);
+$segundoColor: rgb(79, 134, 206);
+$fondo: rgb(214, 000, 160);
+
+
+
+
+
+.menusito {
+    ul { 
+        overflow: hidden;
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        background-color: $fondo2;
+
+    }
+
+    li {
+        float: left;
+        background-color: blue;
+
+        a {
+            display: inline-block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        a:hover {
+            background-color: $colorFavorito;
+        }
+    }
+
+    .active {
+        background-color: $fondo2;
+        font-size: 12px;
+    }
+
+
+    
+}
+
+body {
+    color: $segundoColor;
+    background-color: whitesmoke;
+
+        button {
+            display: inline-block;
+            background-color: $colorFavorito;
+            border-radius: 10px;
+            border: 4px double #cccccc;
+            color: #eeeeee;
+            text-align: center;
+            font-size: 28px;
+            padding: 20px;
+            width: 200px;
+            -webkit-transition: all 0.5s;
+            -moz-transition: all 0.5s;
+            -o-transition: all 0.5s;
+            transition: all 0.5s;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: $segundoColor;
+          }
+}
+
+h2 {
+    background-color: $colorFavorito;
+    color: $segundoColor;
+    margin: 25px;
+    padding: 5px;
+    text-align: center;
+}
+
+#demo {
+    color:darkgray;
+    background-color:$colorFavorito;
+}
+
+ol {
+    border: black;
+    border-color: black;
+    border-radius: 10px;
+}
+
+p {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: #459459;
+    padding: 20px;
+    margin: 30px;
+};
