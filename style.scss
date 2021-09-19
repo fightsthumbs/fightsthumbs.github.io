@@ -1,9 +1,5 @@
-$fondo2: rgb(71, 52, 78);
-$colorFavorito: rgb(214, 112, 160);
-$segundoColor: rgb(79, 134, 206);
-$fondo: rgb(214, 000, 160);
-
-
+@import 'colores';
+@import url('https://fonts.googleapis.com/css2?family=Annie+Use+Your+Telescope&display=swap');
 
 
 
@@ -30,7 +26,7 @@ $fondo: rgb(214, 000, 160);
         }
 
         a:hover {
-            background-color: $colorFavorito;
+            background-color: $linkHover;
         }
     }
 
@@ -45,7 +41,7 @@ $fondo: rgb(214, 000, 160);
 
 body {
     color: $segundoColor;
-    background-color: whitesmoke;
+    background-color: pink;
 
         button {
             display: inline-block;
@@ -66,7 +62,7 @@ body {
         }
         
         button:hover {
-            background-color: $segundoColor;
+            background-color: $linkHover;
           }
 }
 
@@ -95,3 +91,96 @@ p {
     padding: 20px;
     margin: 30px;
 };
+
+div.tres-bloques { 
+    background-color: yellow;
+    height: 2000px;
+
+    
+    
+
+    h1, ul{
+        background-color: $bloques;
+        color: white;
+        height: 200px;
+        width: 200px;
+        margin: 20px auto;
+        padding: 20px 0;
+        text-align: center;
+        outline: 2px  solid blue;
+        border-color: black;
+        border-radius: 25px;
+        border-style: dotted;
+        border-width: 5px;
+        position: relative;
+        overflow:hidden;
+        text-decoration: underline;
+        text-shadow: 2px 2px 10px green ;
+        font-family: 'Annie Use Your Telescope', cursive;
+        display: inline-flexbox;
+        
+        
+
+    }
+
+    ul {
+        list-style-type: square;
+        
+        /* align-items: initial; */
+        padding: auto;
+        
+
+        
+        li {
+            padding: 10px 0;
+            display: block;
+            
+        };
+        
+    }
+
+    h1:hover {
+        color: blue;
+        background-color: $linkHover;
+        text-shadow: 2px 2px 2px red;
+        
+
+
+    }
+        
+        
+    
+}
+
+table {
+    background-color: $colorFavorito;
+    color: $segundoColor;
+    border: 3px solid blue;
+    padding: 5px;
+    width: 75%;
+    th, td {
+        background-color: white;
+        border: 3px solid black;
+        padding: 20px;
+        text-align: center;
+    }
+}
+
+a:link {
+
+}
+
+a:visited {
+    color: $linkVisitado;
+
+}
+
+a:hover {
+    color: $linkHover;
+
+}
+
+
+a:active {
+
+}

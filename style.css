@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Annie+Use+Your+Telescope&display=swap");
 .menusito ul {
   overflow: hidden;
   list-style-type: none;
@@ -20,7 +21,7 @@
 }
 
 .menusito li a:hover {
-  background-color: #d670a0;
+  background-color: #e76f51;
 }
 
 .menusito .active {
@@ -30,12 +31,12 @@
 
 body {
   color: #4f86ce;
-  background-color: whitesmoke;
+  background-color: pink;
 }
 
 body button {
   display: inline-block;
-  background-color: #d670a0;
+  background-color: #d6d470;
   border-radius: 10px;
   border: 4px double #cccccc;
   color: #eeeeee;
@@ -50,11 +51,11 @@ body button {
 }
 
 body button:hover {
-  background-color: #4f86ce;
+  background-color: #e76f51;
 }
 
 h2 {
-  background-color: #d670a0;
+  background-color: #d6d470;
   color: #4f86ce;
   margin: 25px;
   padding: 5px;
@@ -63,7 +64,7 @@ h2 {
 
 #demo {
   color: darkgray;
-  background-color: #d670a0;
+  background-color: #d6d470;
 }
 
 ol {
@@ -77,5 +78,71 @@ p {
   background-color: #459459;
   padding: 20px;
   margin: 30px;
+}
+
+div.tres-bloques {
+  background-color: yellow;
+  height: 2000px;
+}
+
+div.tres-bloques h1, div.tres-bloques ul {
+  background-color: #2a9d8f;
+  color: white;
+  height: 200px;
+  width: 200px;
+  margin: 20px auto;
+  padding: 20px 0;
+  text-align: center;
+  outline: 2px  solid blue;
+  border-color: black;
+  border-radius: 25px;
+  border-style: dotted;
+  border-width: 5px;
+  position: relative;
+  overflow: hidden;
+  text-decoration: underline;
+  text-shadow: 2px 2px 10px green;
+  font-family: 'Annie Use Your Telescope', cursive;
+  display: inline-flexbox;
+}
+
+div.tres-bloques ul {
+  list-style-type: square;
+  /* align-items: initial; */
+  padding: auto;
+}
+
+div.tres-bloques ul li {
+  padding: 10px 0;
+  display: block;
+}
+
+div.tres-bloques h1:hover {
+  color: blue;
+  background-color: #e76f51;
+  text-shadow: 2px 2px 2px red;
+}
+
+table {
+  background-color: #d6d470;
+  color: #4f86ce;
+  border: 3px solid blue;
+  padding: 5px;
+  width: 75%;
+}
+
+table th, table td {
+  background-color: white;
+  border: 3px solid black;
+  padding: 20px;
+  text-align: center;
+}
+
+a:visited {
+  color: #2a9d8f;
+}
+
+a:hover {
+  color: #e76f51;
 }
 /*# sourceMappingURL=style.css.map */
