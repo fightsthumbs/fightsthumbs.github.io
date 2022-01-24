@@ -1,4 +1,41 @@
 @import url("https://fonts.googleapis.com/css2?family=Annie+Use+Your+Telescope&display=swap");
+.icon-youtube {
+  background-image: url("img/icon_youtube.svg");
+}
+
+.icon-instagram {
+  background-image: url("img/icon_instagram.svg");
+}
+
+.icon-facebook {
+  background-image: url("img/icon_facebook.svg");
+}
+
+.icon-whatsapp {
+  background-image: url("img/icon_whatsapp.svg");
+}
+
+.icon-up {
+  background-image: url("img/icon_up.svg");
+}
+
+.icon-camera {
+  background-image: url("img/icon_camera.svg");
+}
+
+.icon-telegram {
+  background-image: url("img/icon_telegram.svg");
+}
+
+.iconito {
+  display: block;
+  width: 1.5em;
+  height: 1.5em;
+  background-size: cover;
+  margin-top: .313em;
+  /* background-size: 100px 82px; */
+}
+
 .menusito ul {
   overflow: hidden;
   list-style-type: none;
