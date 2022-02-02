@@ -71,7 +71,8 @@ nav a {
 }
 
 #about-me {
-    height: 500px;
+    min-height: 100vh;
+    height: auto;
     background-color: wheat;
 }
 
@@ -120,7 +121,7 @@ div.projects {
 .main-sec {
     max-width:800px;
     min-width: 320px;
-    height: 70%;
+    /* height: 70%; */
     background-color: #FFFFFF80;
     display: flex;
     margin: 40px auto;
@@ -148,4 +149,49 @@ div.projects {
     /* transform: translateY(-5px); */
         box-shadow: black -10px 2px;
     }
+}
+
+.container {
+    display: flex;
+    width: 80vw;
+    margin:auto;
+}
+
+div.links {
+    background-color: rgba(255, 255, 255, 0.288);
+    border: #396DAF solid 2px;
+    border-radius: 15px;
+    margin: 25px 50px;
+    display: flex;
+    flex:1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+div.bio {
+    flex:2;
+}
+
+.links a {
+    padding: 20px;
+    border-radius: 10%;
+    /* border: #70C1F0 solid 2px; */
+    border: 2px solid transparent;
+    font-weight: 800;
+    background-color: #396DAF;
+    color:white;
+    font-size: 2.0rem;
+    box-shadow: black 0px 0px;
+    transition: all .3s ease;
+ 
+    text-decoration: none;
+}
+
+.links a:hover {
+    border:2px solid #396DAF;
+    color: #396DAF;
+    background-color:whitesmoke;
+    cursor: pointer;
+    box-shadow: #00000080 -2px 2px 2px;
 }
