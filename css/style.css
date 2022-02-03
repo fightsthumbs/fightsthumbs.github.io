@@ -24,10 +24,11 @@ main {
     gap: 20px;
     flex-wrap: wrap;
     width: 100%;
-    background-color: rgb(112, 193, 240);
+    background-color: rgb(198, 207, 218);
     min-height:100px;
     align-items: center;
     justify-content: center;
+    border-bottom: black 1px solid;
     /* padding: ; */
 }
 
@@ -73,17 +74,40 @@ nav a {
 #about-me {
     min-height: 100vh;
     height: auto;
-    background-color: wheat;
+    background: rgb(57,109,175);
+    background: linear-gradient(0deg, rgba(57,109,175,1) 0%, rgb(198, 207, 218) 93%);;
 }
 
 .about-me-name h1{
     font-size: 4.8rem;
     line-height: 5.2rem;
     text-align: center;
-    padding-top: 4.4rem;
     /* margin-top: 1.2rem; */
     margin: auto auto;
+    margin-top: 4.4rem;
+    padding: 15px 0px;
+    color: azure;
+    background-color: #396DAF;
 }
+
+div.portrait {
+    
+}
+
+div.portrait img {
+    display: block;
+    margin:auto;
+    width:300px;
+    height: 300px;
+    margin-top: 25px;
+    object-fit: cover;
+    object-position:bottom;
+    background: linear-gradient(to right,rgba(64, 135, 192, 0.4) 0%, rgba(67, 130, 168, 0.9) 100%);
+    mix-blend-mode: multiply;
+    
+}
+
+
 
 .about-me-name {
     /* width: 100%; */
@@ -104,11 +128,11 @@ section#projects {
     width: 100%;
     min-height: 500px;
     height:100vh;
-    background-color: #0020FF;
+    background-color: #dee0e9;
 }
 
 .projects h2 {
-    color: white;
+    color: #3D70B0;
     font-size: 4.2rem;
     text-align: center;
     padding-top: 50px;
@@ -153,11 +177,13 @@ div.projects {
 
 .container {
     display: flex;
-    width: 80vw;
+    max-width: 930px;
     margin:auto;
 }
 
 div.links {
+    /* min-width: 320px; */
+    flex-wrap: wrap;
     background-color: rgba(255, 255, 255, 0.288);
     border: #396DAF solid 2px;
     border-radius: 15px;
@@ -194,4 +220,16 @@ div.bio {
     background-color:whitesmoke;
     cursor: pointer;
     box-shadow: #00000080 -2px 2px 2px;
+}
+
+@media (max-width:920px) {
+    .container {
+        flex-direction: column;
+    }
+
+    div.links {
+        row-gap: 15px;
+        padding:30px;
+        margin:auto;
+    }
 }
