@@ -75,7 +75,13 @@ header {
     color:rgb(255, 255, 255);
     font-weight: 600;
     
+    filter:hue-rotate(0deg);
+    transition: all 200ms;
     /* overflow: auto; */
+}
+
+.logos a:hover {
+    filter:hue-rotate(50deg);
 }
 
 .navbar li {
@@ -238,6 +244,7 @@ div.projects {
 
 div.links {
     /* min-width: 320px; */
+    max-height: 400px;
     flex-wrap: wrap;
     background-color: rgba(255, 255, 255, 0.288);
     border: #396DAF solid 2px;
@@ -283,8 +290,12 @@ div.bio {
     }
 
     div.links {
-        row-gap: 15px;
+        flex-direction: row;
+        column-gap: 15px;
         padding:30px;
         margin:auto;
+        /* flex:1; */
+        flex-wrap: nowrap;
+
     }
 }
