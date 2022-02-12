@@ -49,7 +49,7 @@ header {
     min-height:100px;
     align-items: flex-end;
     justify-content: center;
-    margin-right: auto;
+    margin-right: 50px;
     margin-bottom: 14px;
     
     /* padding: ; */
@@ -103,7 +103,9 @@ header {
 }
 
 
-
+.navbar i {
+    margin-right: 10px;
+}
 
 
 
@@ -133,6 +135,7 @@ nav a {
 
 
 #about-me {
+    padding-top: 30px;
     min-height: 100vh;
     height: auto;
     background: rgb(57,109,175);
@@ -255,6 +258,10 @@ div.links {
     flex-direction: column;
     align-items: center;
     justify-content: space-evenly;
+}
+
+.links i {
+    margin-right: 10px;
 }
 
 div.bio {
