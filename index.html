@@ -1,26 +1,202 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi página web LOL</title>
-    <link rel="stylesheet" href="style.css">
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Un espacio sencillo para acceder a mis enlaces.">
+  <title>Mis enlaces</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f6f7f8;
+      --surface: #ffffff;
+      --text: #20242a;
+      --muted: #737b86;
+      --line: #e7e9ed;
+      --accent: #315f7a;
+      --accent-soft: #edf3f6;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      padding: 48px 20px;
+      display: grid;
+      place-items: center;
+      background: var(--background);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: 100%;
+      max-width: 560px;
+    }
+
+    header {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--accent);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 7vw, 3rem);
+      font-weight: 650;
+      letter-spacing: -0.055em;
+    }
+
+    .intro {
+      max-width: 390px;
+      margin: 12px auto 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+      line-height: 1.6;
+    }
+
+    .links {
+      display: grid;
+      gap: 10px;
+    }
+
+    .link-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+      color: inherit;
+      text-decoration: none;
+      transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    .link-card:hover {
+      transform: translateY(-2px);
+      border-color: #cbd6dd;
+      box-shadow: 0 8px 24px rgba(28, 43, 54, 0.06);
+    }
+
+    .link-card:focus-visible {
+      outline: 3px solid rgba(49, 95, 122, 0.25);
+      outline-offset: 3px;
+    }
+
+    .link-copy { min-width: 0; }
+
+    .link-title {
+      display: block;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .link-description {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    .arrow {
+      flex: 0 0 auto;
+      color: var(--accent);
+      font-size: 1.2rem;
+      transition: transform 160ms ease;
+    }
+
+    .link-card:hover .arrow { transform: translateX(3px); }
+
+    footer {
+      margin-top: 28px;
+      color: #9aa1a9;
+      font-size: 0.78rem;
+      text-align: center;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 36px 18px; }
+      .link-card { padding: 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div>
-        <h1>Sitio en construcción</h1>
+  <main>
+    <header>
+      <p class="eyebrow">Punto de acceso</p>
+      <h1>Mis enlaces</h1>
+      <p class="intro">Un lugar sencillo para encontrar mis proyectos, recursos y páginas.</p>
+    </header>
 
-        <hr />
-        <button id="btn-1">Ok</button>
+    <nav class="links" id="links" aria-label="Enlaces principales">
+      <!-- Editá los enlaces en el arreglo LINKS, al final de este archivo. -->
+    </nav>
 
-    </div>
-    
-    
+    <footer>© <span id="year"></span> · Gracias por pasar por aquí</footer>
+  </main>
 
+  <script>
+    // Agregá, quitá o modificá elementos de esta lista.
+    // Cada elemento necesita: title, description y url.
+    const LINKS = [
+      {
+        title: "Laboratorio de Filtros",
+        description: "Espacio de experimentación con filtros ideales  con componentes pasivos en serie",
+        url: "./misc/lab_filtros.html"
+      },
 
+    ];
 
+    const linksContainer = document.getElementById("links");
+
+    LINKS.forEach(({ title, description, url }) => {
+      const link = document.createElement("a");
+      link.className = "link-card";
+      link.href = url;
+      link.target = url.startsWith("mailto:") ? "_self" : "_blank";
+      if (link.target === "_blank") link.rel = "noopener noreferrer";
+
+      const copy = document.createElement("span");
+      copy.className = "link-copy";
+
+      const heading = document.createElement("span");
+      heading.className = "link-title";
+      heading.textContent = title;
+
+      const detail = document.createElement("span");
+      detail.className = "link-description";
+      detail.textContent = description;
+
+      const arrow = document.createElement("span");
+      arrow.className = "arrow";
+      arrow.setAttribute("aria-hidden", "true");
+      arrow.textContent = "↗";
+
+      copy.append(heading, detail);
+      link.append(copy, arrow);
+      linksContainer.appendChild(link);
+    });
+
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 </body>
-<script src="app.js"></script>
 </html>

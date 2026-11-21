@@ -1,0 +1,975 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Laboratorio de Filtros</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600&display=swap">
+<style>
+/* Concepto: banco de laboratorio. Controles fijos a la izquierda, instrumentos a la derecha.
+   Azul = magnitud, naranja = fase, verde azulado = todo lo que es señal de salida. */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#14202b; --muted:#566877; --line:#d3dbe2;
+  --grid:#e6ebf0; --grid2:#c8d1d9; --mag:#1d5fc4; --phase:#c2410c; --out:#0b7a70;
+  --r:#a16207; --l:#6d28d9; --c:#be185d; --on-accent:#ffffff;
+  --display:'Space Grotesk',system-ui,sans-serif;
+  --body:'Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d141a; --panel:#151e26; --ink:#e6edf3; --muted:#93a4b3; --line:#27333e;
+    --grid:#1d2831; --grid2:#2f3d49; --mag:#6aa5ff; --phase:#ff9e5e; --out:#3dd6c3;
+    --r:#e5b04a; --l:#b79cff; --c:#ff7eb6; --on-accent:#08111a; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d141a; --panel:#151e26; --ink:#e6edf3; --muted:#93a4b3; --line:#27333e;
+  --grid:#1d2831; --grid2:#2f3d49; --mag:#6aa5ff; --phase:#ff9e5e; --out:#3dd6c3;
+  --r:#e5b04a; --l:#b79cff; --c:#ff7eb6; --on-accent:#08111a; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--body); font-size:15px; line-height:1.5;
+  padding-block:20px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.top{padding-bottom:4px}
+.eyebrow{font:500 .72rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+h1{font:600 clamp(1.6rem,3.4vw,2.3rem)/1.1 var(--display);letter-spacing:-.015em;margin:0;text-wrap:balance}
+.lede{color:var(--muted);max-width:64ch;margin:8px 0 0}
+h2{font:600 1rem var(--display);margin:0 0 12px;letter-spacing:.005em}
+h3{font:600 .78rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--mag);outline-offset:2px}
+
+/* Selector */
+.selrow{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex:none}
+.seg button{border:0;background:var(--panel);padding:9px 22px;font:600 .95rem var(--mono);cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--mag);color:var(--on-accent)}
+.outs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;flex:1 1 420px;min-width:0}
+.outbtn{display:flex;flex-direction:column;gap:2px;text-align:left;border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:9px 12px;cursor:pointer}
+.outbtn strong{font:600 .92rem var(--display)}
+.outbtn span{font-size:.8rem;color:var(--muted)}
+.outbtn:hover{border-color:var(--grid2)}
+.outbtn[aria-pressed="true"]{border-color:var(--out);box-shadow:inset 0 0 0 1px var(--out);background:color-mix(in srgb,var(--out) 9%,var(--panel))}
+
+/* Disposición */
+.layout{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.col-a,.col-b{display:contents}
+#cardCircuit{order:1}#cardControls{order:2}#cardBode{order:3}.pair{order:4}.pair.p2{order:5}
+.pair{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){.pair{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1040px){
+  .layout{grid-template-columns:360px minmax(0,1fr);align-items:start}
+  .col-a,.col-b{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .col-a{align-self:stretch}
+  #cardControls{position:sticky;top:calc(12px + env(safe-area-inset-top,0px));max-height:calc(100vh - 24px);overflow:auto}
+}
+
+/* Controles */
+.param{margin-bottom:18px}
+.phead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.phead label{font-weight:600}
+.phead .s{font-family:var(--mono);color:var(--muted);font-weight:500}
+.pval{display:flex;gap:6px}
+.pval input{width:92px;border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:5px 8px;font-family:var(--mono);text-align:right}
+.pval select{border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:5px 6px;font-family:var(--mono)}
+input[type=range]{width:100%;accent-color:var(--mag);margin:2px 0}
+.ends{display:flex;justify-content:space-between;font:400 .72rem var(--mono);color:var(--muted)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:999px;background:var(--bg);padding:5px 11px;font-size:.82rem;cursor:pointer}
+.chip:hover{border-color:var(--mag)}
+.hint{font-size:.82rem;color:var(--muted);margin:10px 0 0}
+
+/* Circuito */
+.circ{width:100%;height:auto;display:block;max-width:760px;margin:0 auto}
+.wire,.sym{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sym.out{stroke:var(--out)}
+.lbl{fill:var(--ink);font:500 12px var(--mono);text-anchor:middle}
+.lbl.out{fill:var(--out)}
+.vout{stroke:var(--out);stroke-width:1.6;stroke-dasharray:4 3;fill:none}
+.voutarrow{stroke:var(--out);stroke-width:1.8;fill:none}
+.voutt{fill:var(--out);font:600 13px var(--mono)}
+.vint{fill:var(--ink);font:600 13px var(--mono)}
+.dot{fill:var(--out)}
+
+/* Bode */
+.tools{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:10px}
+.tools label{display:inline-flex;gap:6px;align-items:center;font-size:.88rem;cursor:pointer}
+.tools select{border:1px solid var(--line);border-radius:6px;background:var(--bg);padding:4px 6px;font-size:.88rem}
+.keys{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.78rem;color:var(--muted);margin-left:auto}
+.keys i{display:inline-block;vertical-align:middle;margin-right:5px}
+.k-solid{width:20px;border-top:2.4px solid var(--ink)}
+.k-dash{width:20px;border-top:2px dashed var(--ink)}
+.k-band{width:16px;height:10px;background:color-mix(in srgb,var(--mag) 16%,transparent);border:1px solid color-mix(in srgb,var(--mag) 40%,transparent)}
+.cursorrow{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin-bottom:10px}
+.cursorrow input[type=range]{flex:1 1 220px;min-width:140px;width:auto}
+.cursorrow button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:4px 10px;font-size:.85rem;cursor:pointer}
+.cursorrow button:hover{border-color:var(--mag)}
+.readout{display:flex;flex-wrap:wrap;gap:4px 18px;font:500 .88rem var(--mono);margin-bottom:8px}
+.readout b{font-weight:500;color:var(--muted);margin-right:5px}
+.plot{width:100%;height:auto;display:block;touch-action:pan-y;cursor:crosshair;user-select:none}
+.tk{fill:var(--muted);font:400 11px var(--mono)}
+.ax{fill:var(--muted);font:500 11px var(--body)}
+.g{stroke:var(--grid);stroke-width:1}
+.g2{stroke:var(--grid2);stroke-width:1}
+.m3{stroke:var(--mag);stroke-width:1;stroke-dasharray:3 4;opacity:.55}
+.band{fill:var(--mag);opacity:.1}
+.f0line{stroke:var(--muted);stroke-width:1;stroke-dasharray:2 4}
+.cm{fill:none;stroke:var(--mag);stroke-width:2.5;stroke-linejoin:round}
+.cp{fill:none;stroke:var(--phase);stroke-width:2.5;stroke-linejoin:round}
+.am{fill:none;stroke:var(--mag);stroke-width:1.6;stroke-dasharray:6 4;opacity:.8}
+.ap{fill:none;stroke:var(--phase);stroke-width:1.6;stroke-dasharray:6 4;opacity:.85}
+.cur{stroke:var(--ink);stroke-width:1.2;opacity:.75}
+.dm{fill:var(--mag);stroke:var(--panel);stroke-width:2}
+.dp{fill:var(--phase);stroke:var(--panel);stroke-width:2}
+.ring{fill:var(--panel);stroke:var(--mag);stroke-width:2}
+
+/* Función de transferencia y métricas */
+.hrow{margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.hrow:last-child{margin-bottom:0}
+.heq{display:flex;align-items:center;gap:8px;font:400 .95rem var(--mono);flex-wrap:nowrap;white-space:nowrap}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle}
+.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 8px 3px}
+.frac>span:last-child{padding:3px 8px 0}
+.stdnote{font-size:.82rem;color:var(--muted);margin:2px 0 0}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 16px;margin:0;font-size:.9rem}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-family:var(--mono);text-align:right;overflow-wrap:anywhere}
+.badge{display:inline-block;border:1px solid currentColor;border-radius:999px;padding:0 9px;font:500 .78rem var(--body)}
+.badge.over{color:var(--mag)}.badge.crit{color:var(--out)}.badge.under{color:var(--phase)}
+.damp{font-size:.86rem;color:var(--muted);margin:12px 0 0;padding-top:10px;border-top:1px solid var(--line)}
+
+/* Fasores y tiempo */
+.vis{width:100%;height:auto;display:block}
+.uc{fill:none;stroke:var(--grid2);stroke-width:1;stroke-dasharray:3 4}
+.axl{stroke:var(--grid2);stroke-width:1}
+.ph-in{stroke:var(--ink);stroke-width:2.6;fill:none}
+.ph-out{stroke:var(--out);stroke-width:2.6;fill:none}
+.seg-R{stroke:var(--r)}.seg-L{stroke:var(--l)}.seg-C{stroke:var(--c)}
+.seg-x{stroke-width:1.8;fill:none}
+.arc{fill:none;stroke:var(--out);stroke-width:1.5}
+.mk-in{fill:var(--ink)}.mk-out{fill:var(--out)}.mk-R{fill:var(--r)}.mk-L{fill:var(--l)}.mk-C{fill:var(--c)}
+.tin{fill:none;stroke:var(--ink);stroke-width:1.8;opacity:.6}
+.tout{fill:none;stroke:var(--out);stroke-width:2.6}
+.cap{font:400 .84rem var(--mono);margin:8px 0 0;color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem;color:var(--muted);margin-top:6px}
+.legend i{display:inline-block;width:16px;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.opt{display:inline-flex;gap:6px;align-items:center;font-size:.86rem;cursor:pointer;margin-bottom:8px}
+.note{font-size:.82rem;color:var(--muted);margin:0}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Circuitos lineales 2</p>
+    <h1>Laboratorio de filtros</h1>
+    <p class="lede">Filtros ideales en serie con componentes ideales. Elige el circuito y el elemento donde mides la salida, cambia R, L y C, y mira el diagrama de Bode actualizarse al instante.</p>
+  </header>
+
+  <section class="card" aria-label="Circuito y salida">
+    <div class="selrow">
+      <div>
+        <h3>Circuito</h3>
+        <div class="seg" id="circSeg">
+          <button type="button" data-circ="RC" aria-pressed="true">RC</button>
+          <button type="button" data-circ="RL" aria-pressed="false">RL</button>
+          <button type="button" data-circ="RLC" aria-pressed="false">RLC</button>
+        </div>
+      </div>
+      <div style="flex:1 1 420px;min-width:0">
+        <h3>Salida medida en</h3>
+        <div class="outs" id="outs"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout">
+    <div class="col-a">
+      <section class="card" id="cardControls" aria-label="Valores de los componentes">
+        <h2>Componentes</h2>
+        <div id="params"></div>
+        <h3>Valores de partida</h3>
+        <div class="presets" id="presets"></div>
+        <p class="hint">Los deslizadores usan escala logarítmica. También puedes escribir el valor y elegir la unidad.</p>
+      </section>
+    </div>
+
+    <div class="col-b">
+      <section class="card" id="cardCircuit" aria-label="Diagrama del circuito">
+        <h2>Circuito</h2>
+        <svg class="circ" id="circuit" viewBox="0 0 610 190" role="img" aria-label="Circuito en serie con la salida resaltada"></svg>
+      </section>
+
+      <section class="card" id="cardBode" aria-label="Diagrama de Bode">
+        <h2>Diagrama de Bode</h2>
+        <div class="tools">
+          <label><input type="checkbox" id="chkAsym" checked> Asíntotas</label>
+          <label>Rango
+            <select id="rangeSel">
+              <option value="1-1e5">1 Hz – 100 kHz</option>
+              <option value="10-1e6" selected>10 Hz – 1 MHz</option>
+              <option value="100-1e7">100 Hz – 10 MHz</option>
+              <option value="1e3-1e8">1 kHz – 100 MHz</option>
+              <option value="auto">Automático, centrado en f₀</option>
+            </select>
+          </label>
+          <span class="keys">
+            <span><i class="k-solid"></i>curva exacta</span>
+            <span><i class="k-dash"></i>asíntotas</span>
+            <span><i class="k-band"></i>banda de paso (−3 dB)</span>
+          </span>
+        </div>
+        <div class="cursorrow">
+          <label for="cur" style="font-weight:600">Frecuencia</label>
+          <input type="range" id="cur" min="0" max="1000" step="1" aria-label="Frecuencia del cursor, escala logarítmica">
+          <button type="button" id="goF0">Ir a f₀</button>
+        </div>
+        <output class="readout" id="readout" for="cur"></output>
+        <svg class="plot" id="bodeMag" viewBox="0 0 760 320" role="img" aria-label="Magnitud en decibeles contra frecuencia"></svg>
+        <svg class="plot" id="bodePh" viewBox="0 0 760 230" role="img" aria-label="Fase en grados contra frecuencia"></svg>
+        <p class="note" style="margin-top:8px">Arrastra sobre cualquiera de las dos gráficas para mover el cursor.</p>
+      </section>
+
+      <div class="pair">
+        <section class="card" aria-label="Función de transferencia">
+          <h2>Función de transferencia</h2>
+          <div id="hs"></div>
+        </section>
+        <section class="card" aria-label="Parámetros del filtro">
+          <h2>Parámetros del filtro</h2>
+          <dl class="kv" id="metrics"></dl>
+          <p class="damp" id="damp" hidden></p>
+        </section>
+      </div>
+
+      <div class="pair p2">
+        <section class="card" aria-label="Fasores">
+          <h2>Fasores a la frecuencia del cursor</h2>
+          <label class="opt"><input type="checkbox" id="chkChain"> Mostrar la suma de tensiones de cada elemento</label>
+          <svg class="vis" id="phasor" viewBox="0 0 460 300" role="img" aria-label="Diagrama fasorial de Vin y Vout"></svg>
+          <div class="legend" id="phLegend"></div>
+          <p class="cap" id="phCap"></p>
+        </section>
+        <section class="card" aria-label="Respuesta en el tiempo">
+          <h2>Respuesta en el tiempo</h2>
+          <label class="opt"><input type="checkbox" id="chkAnim"> Animar</label>
+          <svg class="vis" id="timeplot" viewBox="0 0 460 300" role="img" aria-label="Señal de entrada y de salida contra tiempo"></svg>
+          <div class="legend"><span><i style="border-color:var(--ink);opacity:.6"></i>Vin(t)</span><span><i style="border-color:var(--out)"></i>Vout(t)</span></div>
+          <p class="cap" id="tCap"></p>
+          <p class="note" style="margin-top:6px">Régimen permanente senoidal: no se muestra el transitorio. Amplitud de entrada 1 V.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const TAU = 2*Math.PI;
+const $ = id => document.getElementById(id);
+const clamp = (x,a,b) => Math.min(b,Math.max(a,x));
+
+/* ---------- Definiciones ---------- */
+const CFG = {
+  'rc-lp':  {circ:'RC',  title:'Pasa bajas',               out:['C'],     outText:'el capacitor',                  kind:'lp', order:1},
+  'rc-hp':  {circ:'RC',  title:'Pasa altas',               out:['R'],     outText:'la resistencia',                kind:'hp', order:1},
+  'rl-lp':  {circ:'RL',  title:'Pasa bajas',               out:['R'],     outText:'la resistencia',                kind:'lp', order:1},
+  'rl-hp':  {circ:'RL',  title:'Pasa altas',               out:['L'],     outText:'el inductor',                   kind:'hp', order:1},
+  'rlc-bp': {circ:'RLC', title:'Pasa banda',               out:['R'],     outText:'la resistencia',                kind:'bp', order:2},
+  'rlc-br': {circ:'RLC', title:'Rechaza banda',            out:['L','C'], outText:'el inductor y el capacitor',    kind:'br', order:2},
+  'rlc-lp': {circ:'RLC', title:'Pasa bajas de 2.º orden',  out:['C'],     outText:'el capacitor',                  kind:'lp', order:2},
+  'rlc-hp': {circ:'RLC', title:'Pasa altas de 2.º orden',  out:['L'],     outText:'el inductor',                   kind:'hp', order:2}
+};
+const ELEMS = {RC:['R','C'], RL:['R','L'], RLC:['R','L','C']};
+const FIRST = {RC:'rc-lp', RL:'rl-lp', RLC:'rlc-bp'};
+const DEFAULTS = {RC:{R:1e3,C:100e-9}, RL:{R:1e3,L:0.1}, RLC:{R:100,L:10e-3,C:100e-9}};
+const PARAMS = {
+  R:{name:'Resistencia', sym:'R', min:1,    max:1e6,  units:[['Ω',1],['kΩ',1e3],['MΩ',1e6]], base:'Ω'},
+  L:{name:'Inductancia', sym:'L', min:1e-6, max:10,   units:[['µH',1e-6],['mH',1e-3],['H',1]], base:'H'},
+  C:{name:'Capacitancia',sym:'C', min:1e-12,max:1e-3, units:[['pF',1e-12],['nF',1e-9],['µF',1e-6],['mF',1e-3]], base:'F'}
+};
+const RANGES = {'1-1e5':[1,1e5],'10-1e6':[10,1e6],'100-1e7':[100,1e7],'1e3-1e8':[1e3,1e8]};
+const state = {circ:'RC', cfg:'rc-lp', R:1e3, L:10e-3, C:100e-9, curF:1590, asym:true, range:'10-1e6', chain:false};
+
+/* ---------- Formato ---------- */
+const PREFIX = [[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p'],[1e-15,'f']];
+function fmtSI(v, unit){
+  if(!isFinite(v) || v===0) return '0 '+unit;
+  const a = Math.abs(v);
+  const p = PREFIX.find(x => a >= x[0]*0.9995) || PREFIX[PREFIX.length-1];
+  return String(parseFloat((v/p[0]).toPrecision(3))).replace('-','−')+' '+p[1]+unit;
+}
+function fmtNum(x){
+  if(!isFinite(x)) return '∞';
+  if(x===0) return '0';
+  const neg = x<0 ? '−' : '';
+  const a = Math.abs(x);
+  if(a>=1e5 || a<1e-2){
+    let e = Math.floor(Math.log10(a));
+    let m = parseFloat((a/Math.pow(10,e)).toPrecision(3));
+    if(m>=10){ m/=10; e++; }
+    return neg+m+'×10<sup>'+e+'</sup>';
+  }
+  return neg+parseFloat(a.toPrecision(3));
+}
+function fmtDb(db){
+  if(!isFinite(db) || db<-120) return '−∞ dB';
+  return (db<0?'−':'+')+Math.abs(db).toFixed(2)+' dB';
+}
+function fmtDeg(p){ return (p<0?'−':(p>0?'+':''))+Math.abs(p).toFixed(1)+'°'; }
+const frac = (n,d) => '<span class="frac"><span>'+n+'</span><span>'+d+'</span></span>';
+
+/* ---------- Números complejos y circuito ---------- */
+const cadd = (a,b) => [a[0]+b[0], a[1]+b[1]];
+const cmul = (a,b) => [a[0]*b[0]-a[1]*b[1], a[0]*b[1]+a[1]*b[0]];
+const cdiv = (a,b) => { const d=b[0]*b[0]+b[1]*b[1]; return [(a[0]*b[0]+a[1]*b[1])/d, (a[1]*b[0]-a[0]*b[1])/d]; };
+function impedances(f){
+  const w = TAU*f;
+  return {R:[state.R,0], L:[0,w*state.L], C:[0,-1/(w*state.C)]};
+}
+function Hc(f){
+  const Z = impedances(f), c = CFG[state.cfg];
+  let t=[0,0], o=[0,0];
+  ELEMS[state.circ].forEach(e => { t = cadd(t,Z[e]); });
+  c.out.forEach(e => { o = cadd(o,Z[e]); });
+  return cdiv(o,t);
+}
+const magH = f => { const h=Hc(f); return Math.hypot(h[0],h[1]); };
+
+function derive(){
+  const c = CFG[state.cfg], R=state.R, L=state.L, C=state.C;
+  if(c.order===1){
+    const wc = state.circ==='RC' ? 1/(R*C) : R/L;
+    return {order:1, wc:wc, fc:wc/TAU, f0:wc/TAU, tau:1/wc};
+  }
+  const w0 = 1/Math.sqrt(L*C), Q = Math.sqrt(L/C)/R;
+  return {order:2, w0:w0, f0:w0/TAU, Q:Q, zeta:1/(2*Q)};
+}
+function curRange(d){
+  if(state.range==='auto'){
+    const e = Math.round(Math.log10(d.f0));
+    return [Math.pow(10,e-2), Math.pow(10,e+2)];
+  }
+  return RANGES[state.range];
+}
+
+/* ---------- Análisis numérico (cruces de −3 dB y pico) ---------- */
+function analyze(d){
+  const c = CFG[state.cfg], out = {};
+  if(c.order===1){ out.fc = d.fc; return out; }
+  const target = Math.SQRT1_2, N = 3000;
+  const l0 = Math.log10(d.f0)-4, l1 = Math.log10(d.f0)+4;
+  let pf=null, pg=null, peak=-Infinity, peakF=d.f0;
+  const cr = [];
+  for(let i=0;i<=N;i++){
+    const f = Math.pow(10, l0+(l1-l0)*i/N), m = magH(f), g = m-target;
+    if(m>peak){ peak=m; peakF=f; }
+    if(pg!==null && (pg<0)!==(g<0)){
+      let a=pf, b=f, ga=pg;
+      for(let k=0;k<50;k++){
+        const mid = Math.sqrt(a*b), gm = magH(mid)-target;
+        if((gm<0)===(ga<0)){ a=mid; ga=gm; } else { b=mid; }
+      }
+      cr.push(Math.sqrt(a*b));
+    }
+    pf=f; pg=g;
+  }
+  if(c.kind==='lp' && cr.length) out.fc = cr[cr.length-1];
+  if(c.kind==='hp' && cr.length) out.fc = cr[0];
+  if((c.kind==='bp'||c.kind==='br') && cr.length>=2){
+    out.f1 = cr[0]; out.f2 = cr[cr.length-1]; out.bw = out.f2-out.f1;
+  }
+  if((c.kind==='lp'||c.kind==='hp') && peak>1.0057){ out.peakDb = 20*Math.log10(peak); out.peakF = peakF; }
+  return out;
+}
+
+/* ---------- Asíntotas de Bode ---------- */
+function asymSpec(d){
+  const c = CFG[state.cfg];
+  const s = {K:1, n:0, fref:d.f0, poles:[], cpole:false, czero:false};
+  if(c.order===1){ s.poles=[d.fc]; if(c.kind==='hp') s.n=1; return s; }
+  const z = d.zeta;
+  if(z>=1){ const r=Math.sqrt(z*z-1); s.poles=[d.f0/(z+r), d.f0*(z+r)]; } else { s.cpole=true; }
+  if(c.kind==='hp') s.n=2;
+  if(c.kind==='bp'){ s.n=1; s.K=1/d.Q; }
+  if(c.kind==='br') s.czero=true;
+  return s;
+}
+function asymMag(f,s){
+  let db = 20*Math.log10(s.K) + s.n*20*Math.log10(f/s.fref);
+  s.poles.forEach(fp => { db -= Math.max(0, 20*Math.log10(f/fp)); });
+  if(s.cpole) db -= Math.max(0, 40*Math.log10(f/s.fref));
+  if(s.czero) db += Math.max(0, 40*Math.log10(f/s.fref));
+  return db;
+}
+function asymPh(f,s){
+  let p = 90*s.n;
+  s.poles.forEach(fp => {
+    const x = f/fp;
+    p -= x<=0.1 ? 0 : (x>=10 ? 90 : 45*(1+Math.log10(x)));
+  });
+  if(s.cpole && f>=s.fref) p -= 180;
+  if(s.czero && f>=s.fref) p += 180;
+  return p;
+}
+
+/* ---------- Controles ---------- */
+function bestUnit(p, v){
+  let i = 0;
+  p.units.forEach((u,k) => { if(v >= u[1]*0.9995) i = k; });
+  return i;
+}
+function posOf(k, v){
+  const p = PARAMS[k];
+  return Math.round((Math.log10(v)-Math.log10(p.min))/(Math.log10(p.max)-Math.log10(p.min))*1000);
+}
+function valOf(k, pos){
+  const p = PARAMS[k];
+  const lg = Math.log10(p.min) + pos/1000*(Math.log10(p.max)-Math.log10(p.min));
+  return parseFloat(Math.pow(10,lg).toPrecision(3));
+}
+function syncParamUI(k, skip){
+  const p = PARAMS[k], v = state[k];
+  if(skip!=='slider') $('s-'+k).value = posOf(k,v);
+  if(skip!=='text'){
+    const i = bestUnit(p,v);
+    $('u-'+k).selectedIndex = i;
+    $('n-'+k).value = String(parseFloat((v/p.units[i][1]).toPrecision(3)));
+  }
+}
+function buildParams(){
+  $('params').innerHTML = Object.keys(PARAMS).map(k => {
+    const p = PARAMS[k];
+    const opts = p.units.map(u => '<option>'+u[0]+'</option>').join('');
+    return '<div class="param" id="p-'+k+'">'+
+      '<div class="phead"><label for="n-'+k+'">'+p.name+' <span class="s">'+p.sym+'</span></label>'+
+      '<span class="pval"><input id="n-'+k+'" type="number" step="any" inputmode="decimal">'+
+      '<select id="u-'+k+'" aria-label="Unidad de '+p.name.toLowerCase()+'">'+opts+'</select></span></div>'+
+      '<input id="s-'+k+'" type="range" min="0" max="1000" step="1" aria-label="'+p.name+', escala logarítmica">'+
+      '<div class="ends"><span>'+fmtSI(p.min,p.base)+'</span><span>'+fmtSI(p.max,p.base)+'</span></div></div>';
+  }).join('');
+  Object.keys(PARAMS).forEach(k => {
+    const p = PARAMS[k];
+    $('s-'+k).addEventListener('input', e => {
+      state[k] = clamp(valOf(k, +e.target.value), p.min, p.max);
+      syncParamUI(k,'slider'); renderAll();
+    });
+    const fromText = () => {
+      const x = parseFloat($('n-'+k).value);
+      if(!isFinite(x) || x<=0) return false;
+      state[k] = clamp(x*p.units[$('u-'+k).selectedIndex][1], p.min, p.max);
+      $('s-'+k).value = posOf(k,state[k]);
+      return true;
+    };
+    $('n-'+k).addEventListener('input', () => { if(fromText()) renderAll(); });
+    $('n-'+k).addEventListener('change', () => { fromText(); syncParamUI(k); renderAll(); });
+    $('u-'+k).addEventListener('change', () => { if(fromText()) renderAll(); });
+  });
+}
+function applyValues(vals){
+  Object.keys(vals).forEach(k => {
+    const p = PARAMS[k];
+    state[k] = clamp(parseFloat(vals[k].toPrecision(3)), p.min, p.max);
+    syncParamUI(k);
+  });
+}
+function setVisibility(){
+  $('p-L').hidden = state.circ==='RC';
+  $('p-C').hidden = state.circ==='RL';
+}
+function presetList(){
+  if(state.circ==='RC') return [100,1e3,1e4].map(fc => ({label:'fc = '+fmtSI(fc,'Hz'), vals:{R:1e3, C:1/(TAU*1e3*fc)}}));
+  if(state.circ==='RL') return [100,1e3,1e4].map(fc => ({label:'fc = '+fmtSI(fc,'Hz'), vals:{R:1e3, L:1e3/(TAU*fc)}}));
+  const f0 = 1e3, L = 10e-3, C = 1/(Math.pow(TAU*f0,2)*L), Z0 = Math.sqrt(L/C);
+  return [
+    {label:'Q = 0.25 · sobreamortiguado', Q:0.25},
+    {label:'Q = 0.5 · crítico', Q:0.5},
+    {label:'Q = 2 · subamortiguado', Q:2},
+    {label:'Q = 10 · muy selectivo', Q:10}
+  ].map(o => ({label:o.label, vals:{R:Z0/o.Q, L:L, C:C}}));
+}
+function buildPresets(){
+  const list = presetList();
+  const host = $('presets');
+  host.innerHTML = list.map((p,i) => '<button type="button" class="chip" data-i="'+i+'">'+p.label+'</button>').join('') +
+    (state.circ==='RLC' ? '' : '');
+  host.onclick = e => {
+    const b = e.target.closest('.chip'); if(!b) return;
+    applyValues(list[+b.dataset.i].vals);
+    state.curF = derive().f0;
+    renderAll();
+  };
+  $('presets').nextElementSibling.textContent = state.circ==='RLC'
+    ? 'Todos los valores de partida usan f₀ = 1 kHz y L = 10 mH; cambia Q variando R.'
+    : 'Los valores de partida fijan R = 1 kΩ y ajustan el elemento reactivo para obtener fc.';
+}
+function buildOutputs(){
+  const keys = Object.keys(CFG).filter(k => CFG[k].circ===state.circ);
+  $('outs').innerHTML = keys.map(k =>
+    '<button type="button" class="outbtn" data-cfg="'+k+'" aria-pressed="'+(k===state.cfg)+'"><strong>'+CFG[k].title+'</strong><span>Vout en '+CFG[k].outText+'</span></button>'
+  ).join('');
+}
+function setCircuit(circ){
+  state.circ = circ;
+  state.cfg = FIRST[circ];
+  applyValues(DEFAULTS[circ]);
+  Object.keys(PARAMS).forEach(k => syncParamUI(k));
+  document.querySelectorAll('#circSeg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.circ===circ)));
+  setVisibility(); buildOutputs(); buildPresets();
+  const d = derive();
+  state.curF = d.f0;
+  renderAll();
+}
+
+/* ---------- Circuito (SVG) ---------- */
+function symR(cx){
+  const pts = [[-30,0],[-25,-12],[-15,12],[-5,-12],[5,12],[15,-12],[25,12],[30,0]].map(p => (cx+p[0])+','+(45+p[1])).join(' ');
+  return '<polyline points="'+(cx-45)+',45 '+pts+' '+(cx+45)+',45"/>';
+}
+function symL(cx){
+  const a = 'a7.5 7.5 0 0 1 15 0 ';
+  return '<path d="M'+(cx-45)+' 45 H'+(cx-30)+' '+a+a+a+a+'H'+(cx+45)+'"/>';
+}
+function symC(cx){
+  return '<path d="M'+(cx-45)+' 45 H'+(cx-5)+' M'+(cx+5)+' 45 H'+(cx+45)+' M'+(cx-5)+' 27 V63 M'+(cx+5)+' 27 V63"/>';
+}
+function renderCircuit(){
+  const c = CFG[state.cfg], els = ELEMS[state.circ], n = els.length;
+  const xs = els.map((e,i) => 95 + (i+0.5)*(430/n));
+  let wires = 'M50 45 V80 M50 124 V160 H560 V45 H'+(xs[n-1]+45);
+  wires += ' M50 45 H'+(xs[0]-45);
+  for(let i=0;i<n-1;i++) wires += ' M'+(xs[i]+45)+' 45 H'+(xs[i+1]-45);
+  let body = '';
+  els.forEach((e,i) => {
+    const isOut = c.out.indexOf(e)>=0;
+    const sym = e==='R' ? symR(xs[i]) : (e==='L' ? symL(xs[i]) : symC(xs[i]));
+    body += '<g class="sym'+(isOut?' out':'')+'">'+sym+'</g>';
+    body += '<text class="lbl'+(isOut?' out':'')+'" x="'+xs[i]+'" y="92">'+e+' = '+fmtSI(state[e], PARAMS[e].base)+'</text>';
+  });
+  const iFirst = els.findIndex(e => c.out.indexOf(e)>=0);
+  const iLast = n-1-els.slice().reverse().findIndex(e => c.out.indexOf(e)>=0);
+  const x1 = xs[iFirst]-45, x2 = xs[iLast]+45;
+  const out = '<path class="vout" d="M'+x1+' 45 V128 M'+x2+' 45 V128"/>'+
+    '<path class="voutarrow" d="M'+(x1+2)+' 128 H'+(x2-2)+'"/>'+
+    '<circle class="dot" cx="'+x1+'" cy="45" r="3.6"/><circle class="dot" cx="'+x2+'" cy="45" r="3.6"/>'+
+    '<text class="voutt" x="'+(x1+10)+'" y="121" text-anchor="middle">+</text>'+
+    '<text class="voutt" x="'+(x2-10)+'" y="121" text-anchor="middle">−</text>'+
+    '<text class="voutt" x="'+((x1+x2)/2)+'" y="149" text-anchor="middle">Vout</text>';
+  const src = '<circle class="wire" cx="50" cy="102" r="22" style="fill:var(--panel)"/>'+
+    '<path class="wire" d="M38 102 q6 -12 12 0 t12 0" style="stroke-width:1.8"/>'+
+    '<text class="vint" x="58" y="142">Vin</text>';
+  $('circuit').innerHTML = '<path class="wire" d="'+wires+'"/>'+src+body+out;
+}
+
+/* ---------- Bode ---------- */
+function renderBode(d, an, lo, hi){
+  const c = CFG[state.cfg];
+  const l0 = Math.log10(lo), l1 = Math.log10(hi);
+  const N = 480, fs = [];
+  for(let i=0;i<=N;i++) fs.push(Math.pow(10, l0+(l1-l0)*i/N));
+  if(c.order===2 && d.f0>lo && d.f0<hi) fs.push(d.f0);
+  fs.sort((a,b) => a-b);
+  const S = fs.map(f => {
+    const h = Hc(f), m = Math.hypot(h[0],h[1]);
+    return {f:f, db:20*Math.log10(Math.max(m,1e-12)), ph:Math.atan2(h[1],h[0])*180/Math.PI};
+  });
+  let peak = -Infinity;
+  S.forEach(p => { if(p.db>peak) peak=p.db; });
+  const top = Math.max(10, Math.ceil((peak+0.5)/10)*10);
+  const bot = c.order===1 ? -60 : -80;
+  const stepDb = (top-bot)>100 ? 20 : 10;
+
+  const W = 760, ml = 58, mr = 16, pw = W-ml-mr;
+  const fx = f => ml + (Math.log10(f)-l0)/(l1-l0)*pw;
+  const spec = asymSpec(d);
+
+  /* cursor */
+  const cf = state.curF, hc = Hc(cf);
+  const cm = Math.hypot(hc[0],hc[1]);
+  const cdb = 20*Math.log10(Math.max(cm,1e-12));
+  const cph = Math.atan2(hc[1],hc[0])*180/Math.PI;
+
+  /* rejilla vertical común */
+  function vgrid(H, mt, ph, labels){
+    let s = '';
+    for(let dd=Math.floor(l0); dd<=Math.ceil(l1); dd++){
+      for(let m=1;m<=9;m++){
+        const f = m*Math.pow(10,dd);
+        if(f<lo*(1-1e-9) || f>hi*(1+1e-9)) continue;
+        const x = fx(f);
+        s += '<line class="'+(m===1?'g2':'g')+'" x1="'+x.toFixed(1)+'" y1="'+mt+'" x2="'+x.toFixed(1)+'" y2="'+(mt+ph)+'"/>';
+        if(m===1 && labels){
+          s += '<text class="tk" x="'+x.toFixed(1)+'" y="'+(H-12)+'" text-anchor="'+(x>W-34?'end':(x<ml+6?'start':'middle'))+'">'+fmtSI(f,'Hz')+'</text>';
+        }
+      }
+    }
+    return s;
+  }
+  function bands(mt, ph){
+    const r = [];
+    if(c.kind==='lp' && an.fc) r.push([lo,an.fc]);
+    if(c.kind==='hp' && an.fc) r.push([an.fc,hi]);
+    if(c.kind==='bp' && an.f1) r.push([an.f1,an.f2]);
+    if(c.kind==='br' && an.f1){ r.push([lo,an.f1]); r.push([an.f2,hi]); }
+    return r.map(b => {
+      const a = fx(clamp(b[0],lo,hi)), z = fx(clamp(b[1],lo,hi));
+      if(z<=a) return '';
+      return '<rect class="band" x="'+a.toFixed(1)+'" y="'+mt+'" width="'+(z-a).toFixed(1)+'" height="'+ph+'"/>';
+    }).join('');
+  }
+
+  /* --- magnitud --- */
+  {
+    const H=320, mt=14, mb=34, ph=H-mt-mb;
+    const ym = db => mt + (top-db)/(top-bot)*ph;
+    const cl = db => Math.max(bot-300, Math.min(top+300, db));
+    let s = '<defs><clipPath id="cpM"><rect x="'+ml+'" y="'+mt+'" width="'+pw+'" height="'+ph+'"/></clipPath></defs>';
+    s += bands(mt,ph);
+    for(let v=bot; v<=top; v+=stepDb){
+      const y = ym(v).toFixed(1);
+      s += '<line class="'+(v===0?'g2':'g')+'" x1="'+ml+'" y1="'+y+'" x2="'+(W-mr)+'" y2="'+y+'"/>';
+      s += '<text class="tk" x="'+(ml-8)+'" y="'+(+y+4)+'" text-anchor="end">'+(v<0?'−':'')+Math.abs(v)+'</text>';
+    }
+    s += vgrid(H,mt,ph,true);
+    s += '<text class="ax" transform="translate(13 '+(mt+ph/2)+') rotate(-90)" text-anchor="middle">Magnitud (dB)</text>';
+    s += '<text class="ax" x="'+(ml+pw/2)+'" y="'+(H-1)+'" text-anchor="middle">Frecuencia</text>';
+    s += '<line class="m3" x1="'+ml+'" y1="'+ym(-3).toFixed(1)+'" x2="'+(W-mr)+'" y2="'+ym(-3).toFixed(1)+'"/>';
+    s += '<text class="tk" x="'+(W-mr-4)+'" y="'+(ym(-3)-4).toFixed(1)+'" text-anchor="end" style="fill:var(--mag)">−3 dB</text>';
+    if(d.f0>lo && d.f0<hi){
+      const x = fx(d.f0).toFixed(1);
+      s += '<line class="f0line" x1="'+x+'" y1="'+mt+'" x2="'+x+'" y2="'+(mt+ph)+'"/>';
+      s += '<text class="tk" x="'+(+x+5)+'" y="'+(mt+12)+'">'+(c.order===1?'fc':'f₀')+'</text>';
+    }
+    s += '<g clip-path="url(#cpM)">';
+    if(state.asym){
+      const bp = [lo,hi];
+      spec.poles.forEach(fp => bp.push(fp));
+      if(spec.cpole || spec.czero || spec.n>0) bp.push(spec.fref);
+      const pts = bp.filter(f => f>=lo && f<=hi).sort((a,b) => a-b);
+      s += '<path class="am" d="'+pts.map((f,i) => (i?'L':'M')+fx(f).toFixed(1)+' '+ym(cl(asymMag(f,spec))).toFixed(1)).join('')+'"/>';
+    }
+    s += '<path class="cm" d="'+S.map((p,i) => (i?'L':'M')+fx(p.f).toFixed(1)+' '+ym(cl(p.db)).toFixed(1)).join('')+'"/>';
+    s += '</g>';
+    if(c.order===1 && an.fc>lo && an.fc<hi){
+      s += '<circle class="ring" cx="'+fx(an.fc).toFixed(1)+'" cy="'+ym(-3.0103).toFixed(1)+'" r="4.5"/>';
+    }
+    const cx = fx(cf).toFixed(1);
+    s += '<line class="cur" x1="'+cx+'" y1="'+mt+'" x2="'+cx+'" y2="'+(mt+ph)+'"/>';
+    s += '<circle class="dm" cx="'+cx+'" cy="'+ym(Math.max(bot-5,Math.min(top+5,cdb))).toFixed(1)+'" r="5"/>';
+    $('bodeMag').innerHTML = s;
+  }
+
+  /* --- fase --- */
+  {
+    const H=230, mt=14, mb=34, ph=H-mt-mb;
+    const yp = p => mt + (200-p)/400*ph;
+    let s = '<defs><clipPath id="cpP"><rect x="'+ml+'" y="'+mt+'" width="'+pw+'" height="'+ph+'"/></clipPath></defs>';
+    s += bands(mt,ph);
+    for(let v=-180; v<=180; v+=90){
+      const y = yp(v).toFixed(1);
+      s += '<line class="'+(v===0?'g2':'g')+'" x1="'+ml+'" y1="'+y+'" x2="'+(W-mr)+'" y2="'+y+'"/>';
+      s += '<text class="tk" x="'+(ml-8)+'" y="'+(+y+4)+'" text-anchor="end">'+(v<0?'−':'')+Math.abs(v)+'°</text>';
+    }
+    s += vgrid(H,mt,ph,true);
+    s += '<text class="ax" transform="translate(13 '+(mt+ph/2)+') rotate(-90)" text-anchor="middle">Fase (grados)</text>';
+    s += '<text class="ax" x="'+(ml+pw/2)+'" y="'+(H-1)+'" text-anchor="middle">Frecuencia</text>';
+    if(d.f0>lo && d.f0<hi){
+      const x = fx(d.f0).toFixed(1);
+      s += '<line class="f0line" x1="'+x+'" y1="'+mt+'" x2="'+x+'" y2="'+(mt+ph)+'"/>';
+    }
+    s += '<g clip-path="url(#cpP)">';
+    if(state.asym && c.kind!=='br'){
+      const bp = [lo,hi];
+      spec.poles.forEach(fp => { bp.push(fp/10); bp.push(fp*10); });
+      const pts = bp.filter(f => f>=lo && f<=hi).sort((a,b) => a-b).map(f => [f, asymPh(f,spec)]);
+      if(spec.cpole && spec.fref>lo && spec.fref<hi){
+        pts.push([spec.fref*(1-1e-9), asymPh(spec.fref*(1-1e-9),spec)]);
+        pts.push([spec.fref*(1+1e-9), asymPh(spec.fref*(1+1e-9),spec)]);
+        pts.sort((a,b) => a[0]-b[0]);
+      }
+      s += '<path class="ap" d="'+pts.map((p,i) => (i?'L':'M')+fx(p[0]).toFixed(1)+' '+yp(p[1]).toFixed(1)).join('')+'"/>';
+    }
+    let dd = '';
+    S.forEach((p,i) => {
+      const jump = i>0 && Math.abs(p.ph-S[i-1].ph)>150;
+      dd += (i===0||jump?'M':'L')+fx(p.f).toFixed(1)+' '+yp(p.ph).toFixed(1);
+    });
+    s += '<path class="cp" d="'+dd+'"/></g>';
+    const cx = fx(cf).toFixed(1);
+    s += '<line class="cur" x1="'+cx+'" y1="'+mt+'" x2="'+cx+'" y2="'+(mt+ph)+'"/>';
+    if(cm>1e-9) s += '<circle class="dp" cx="'+cx+'" cy="'+yp(cph).toFixed(1)+'" r="5"/>';
+    $('bodePh').innerHTML = s;
+  }
+
+  /* cursor: lectura y deslizador */
+  $('cur').value = Math.round((Math.log10(cf)-l0)/(l1-l0)*1000);
+  $('readout').innerHTML =
+    '<span><b>f</b>'+fmtSI(cf,'Hz')+'</span>'+
+    '<span><b>|H|</b>'+(cm<1e-9?'0':cm.toFixed(3))+' ('+fmtDb(cdb)+')</span>'+
+    '<span><b>φ</b>'+(cm<1e-9?'indefinida (salto de 180°)':fmtDeg(cph))+'</span>';
+}
+
+/* ---------- Función de transferencia ---------- */
+const SIMPLE = {
+  'rc-lp': frac('1','1 + sRC'), 'rc-hp': frac('sRC','1 + sRC'),
+  'rl-lp': frac('R','R + sL'),  'rl-hp': frac('sL','R + sL'),
+  'rlc-bp': frac('sRC','s²LC + sRC + 1'), 'rlc-br': frac('s²LC + 1','s²LC + sRC + 1'),
+  'rlc-lp': frac('1','s²LC + sRC + 1'),   'rlc-hp': frac('s²LC','s²LC + sRC + 1')
+};
+const DIV = {
+  'rc-lp':['1/(sC)','R + 1/(sC)'], 'rc-hp':['R','R + 1/(sC)'],
+  'rl-lp':['R','R + sL'], 'rl-hp':['sL','R + sL'],
+  'rlc-bp':['R','R + sL + 1/(sC)'], 'rlc-br':['sL + 1/(sC)','R + sL + 1/(sC)'],
+  'rlc-lp':['1/(sC)','R + sL + 1/(sC)'], 'rlc-hp':['sL','R + sL + 1/(sC)']
+};
+function renderHS(d){
+  const c = CFG[state.cfg], k = state.cfg;
+  let std, num;
+  if(c.order===1){
+    const wc = fmtNum(d.wc);
+    num = c.kind==='lp' ? frac(wc,'s + '+wc) : frac('s','s + '+wc);
+    std = c.kind==='lp' ? frac('ω<sub>c</sub>','s + ω<sub>c</sub>') : frac('s','s + ω<sub>c</sub>');
+  } else {
+    const w02 = fmtNum(d.w0*d.w0), a = fmtNum(d.w0/d.Q);
+    const den = 's² + '+a+' s + '+w02;
+    const sden = 's² + (ω<sub>0</sub>/Q) s + ω<sub>0</sub>²';
+    const map = {
+      lp:[frac(w02,den), frac('ω<sub>0</sub>²',sden)],
+      hp:[frac('s²',den), frac('s²',sden)],
+      bp:[frac(a+' s',den), frac('(ω<sub>0</sub>/Q) s',sden)],
+      br:[frac('s² + '+w02,den), frac('s² + ω<sub>0</sub>²',sden)]
+    };
+    num = map[c.kind][0]; std = map[c.kind][1];
+  }
+  const row = (label, eq) => '<div class="hrow"><h3>'+label+'</h3><div class="heq">H(s) = '+eq+'</div></div>';
+  let h = row('Divisor de tensión', frac(DIV[k][0], DIV[k][1]));
+  h += row('Simplificada', SIMPLE[k]);
+  h += row('Forma estándar', std);
+  h += '<div class="hrow"><h3>Con los valores actuales</h3><div class="heq">H(s) = '+num+'</div>'+
+       '<p class="stdnote">'+(c.order===1 ? 'ω<sub>c</sub> en rad/s.' : 'ω<sub>0</sub> = '+fmtNum(d.w0)+' rad/s, Q = '+fmtNum(d.Q)+'.')+'</p></div>';
+  $('hs').innerHTML = h;
+}
+
+/* ---------- Parámetros ---------- */
+function renderMetrics(d, an){
+  const c = CFG[state.cfg];
+  const rows = [];
+  const row = (a,b) => rows.push('<dt>'+a+'</dt><dd>'+b+'</dd>');
+  let damp = '';
+  if(c.order===1){
+    row('Tipo', c.title+', 1.er orden');
+    row('Frecuencia de corte fc', fmtSI(d.fc,'Hz'));
+    row('ω<sub>c</sub>', fmtNum(d.wc)+' rad/s');
+    row('Constante de tiempo τ', fmtSI(d.tau,'s'));
+    row('Ganancia en fc', '−3.01 dB (0.707)');
+    row('Fase en fc', c.kind==='lp' ? '−45°' : '+45°');
+    row('Pendiente', c.kind==='lp' ? '−20 dB/década' : '+20 dB/década');
+    row('Polo', 's = −'+fmtNum(d.wc)+' rad/s');
+    row('Cero', c.kind==='lp' ? 'ninguno finito' : 's = 0');
+  } else {
+    const z = d.zeta;
+    row('Tipo', c.title+', RLC serie');
+    row('f₀ = 1/(2π√LC)', fmtSI(d.f0,'Hz'));
+    row('ω<sub>0</sub>', fmtNum(d.w0)+' rad/s');
+    row('Q = √(L/C)/R', fmtNum(d.Q));
+    row('ζ = 1/(2Q)', fmtNum(z));
+    let kind, cls;
+    if(Math.abs(z-1)<0.01){ kind='crítico'; cls='crit'; }
+    else if(z>1){ kind='sobreamortiguado'; cls='over'; }
+    else { kind='subamortiguado'; cls='under'; }
+    row('Amortiguamiento', '<span class="badge '+cls+'">'+kind+'</span>');
+    if(z>=1){
+      const r = Math.sqrt(Math.max(0,z*z-1));
+      row('Polos', 's = −'+fmtNum(d.w0/(z+r))+', −'+fmtNum(d.w0*(z+r))+' rad/s');
+    } else {
+      row('Polos', 's = −'+fmtNum(d.w0*z)+' ± j'+fmtNum(d.w0*Math.sqrt(1-z*z))+' rad/s');
+    }
+    row('Ceros', c.kind==='lp' ? 'dos en el infinito' : (c.kind==='hp' ? 'doble en s = 0' : (c.kind==='bp' ? 's = 0' : 's = ±jω<sub>0</sub>')));
+    if(c.kind==='lp'||c.kind==='hp'){
+      row('Corte (−3 dB)', an.fc ? fmtSI(an.fc,'Hz') : '—');
+      row('Pico de resonancia', an.peakDb ? fmtDb(an.peakDb)+' en '+fmtSI(an.peakF,'Hz') : 'sin pico');
+      row('Pendiente', c.kind==='lp' ? '−40 dB/década' : '+40 dB/década');
+    } else {
+      row('f₁ y f₂ (−3 dB)', an.f1 ? fmtSI(an.f1,'Hz')+' · '+fmtSI(an.f2,'Hz') : '—');
+      row('Ancho de banda', an.bw ? fmtSI(an.bw,'Hz') : '—');
+      row('R/(2πL)', fmtSI(state.R/(TAU*state.L),'Hz'));
+      row(c.kind==='bp' ? 'Ganancia en f₀' : 'Atenuación en f₀', c.kind==='bp' ? '0 dB' : '∞ (ideal)');
+      row('Pendiente', c.kind==='bp' ? '+20 / −20 dB/década' : '0 dB lejos de f₀');
+    }
+    if(z>1.0 && Math.abs(z-1)>=0.01) damp = 'Sobreamortiguado (ζ > 1, Q < 0.5): los dos polos son reales y distintos, así que la respuesta no oscila.';
+    else if(Math.abs(z-1)<0.01) damp = 'Críticamente amortiguado (ζ = 1, Q = 0.5): polo real doble en −ω₀. Es el límite entre respuesta sin oscilación y con oscilación.';
+    else if(c.kind==='lp'||c.kind==='hp') damp = z<Math.SQRT1_2
+      ? 'Subamortiguado (ζ < 0.707, Q > 0.707): los polos son complejos conjugados y aparece un pico de resonancia en la magnitud.'
+      : 'Subamortiguado, pero con ζ ≥ 0.707 (Q ≤ 0.707) la magnitud no muestra pico, aunque los polos ya son complejos.';
+    else damp = 'Subamortiguado (ζ < 1, Q > 0.5): polos complejos conjugados. Cuanto mayor es Q, más angosta es la banda y más profundo se ve el pico o la muesca.';
+  }
+  $('metrics').innerHTML = rows.join('');
+  const dp = $('damp');
+  dp.hidden = !damp; dp.textContent = damp;
+}
+
+/* ---------- Fasores ---------- */
+function renderPhasor(){
+  const f = state.curF, c = CFG[state.cfg], els = ELEMS[state.circ];
+  const Z = impedances(f);
+  let tot = [0,0]; els.forEach(e => { tot = cadd(tot,Z[e]); });
+  const I = cdiv([1,0],tot);
+  const V = {}; els.forEach(e => { V[e] = cmul(Z[e],I); });
+  let vo = [0,0]; c.out.forEach(e => { vo = cadd(vo,V[e]); });
+  const pts = [[0,0],[1,0],vo];
+  const chain = [];
+  if(state.chain){
+    let cur = [0,0];
+    els.forEach(e => { const nx = cadd(cur,V[e]); chain.push({e:e,a:cur,b:nx}); cur = nx; pts.push(nx); });
+  }
+  const W=460, H=300, mx=48, my=30;
+  let minX=0,maxX=0,minY=0,maxY=0;
+  pts.forEach(p => { minX=Math.min(minX,p[0]); maxX=Math.max(maxX,p[0]); minY=Math.min(minY,p[1]); maxY=Math.max(maxY,p[1]); });
+  const spanX = Math.max(maxX-minX,1e-6), spanY = Math.max(maxY-minY,1e-6);
+  const aw = W-2*mx, ah = H-2*my;
+  const s = Math.min(aw/spanX, ah/spanY);
+  const ox = mx + (-minX)*s + (aw-spanX*s)/2;
+  const oy = (H-my) + minY*s - (ah-spanY*s)/2;
+  const X = x => ox + x*s, Y = y => oy - y*s;
+  const len = (a,b) => Math.hypot(X(b[0])-X(a[0]), Y(b[1])-Y(a[1]));
+  const arrow = (a,b,cls,mk) => len(a,b)<2 ? '' :
+    '<line class="'+cls+'" x1="'+X(a[0]).toFixed(1)+'" y1="'+Y(a[1]).toFixed(1)+'" x2="'+X(b[0]).toFixed(1)+'" y2="'+Y(b[1]).toFixed(1)+'" marker-end="url(#'+mk+')"/>';
+  const mk = (id,cls) => '<marker id="'+id+'" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="'+cls+'"/></marker>';
+  let g = '<defs>'+mk('ah-in','mk-in')+mk('ah-out','mk-out')+mk('ah-R','mk-R')+mk('ah-L','mk-L')+mk('ah-C','mk-C')+
+    '<clipPath id="cpF"><rect x="0" y="0" width="'+W+'" height="'+H+'"/></clipPath></defs>';
+  g += '<g clip-path="url(#cpF)">';
+  g += '<circle class="uc" cx="'+ox.toFixed(1)+'" cy="'+oy.toFixed(1)+'" r="'+s.toFixed(1)+'"/>';
+  g += '<line class="axl" x1="8" y1="'+oy.toFixed(1)+'" x2="'+(W-8)+'" y2="'+oy.toFixed(1)+'"/>';
+  g += '<line class="axl" x1="'+ox.toFixed(1)+'" y1="8" x2="'+ox.toFixed(1)+'" y2="'+(H-8)+'"/>';
+  g += '</g>';
+  g += '<text class="tk" x="'+(W-10)+'" y="'+(oy-5).toFixed(1)+'" text-anchor="end">Re</text>';
+  g += '<text class="tk" x="'+(ox+6).toFixed(1)+'" y="18">Im</text>';
+  chain.forEach(seg => { g += arrow(seg.a,seg.b,'seg-x seg-'+seg.e,'ah-'+seg.e); });
+  g += arrow([0,0],[1,0],'ph-in','ah-in');
+  g += arrow([0,0],vo,'ph-out','ah-out');
+  const mag = Math.hypot(vo[0],vo[1]), ang = Math.atan2(vo[1],vo[0]);
+  if(mag>1e-6 && Math.abs(ang)>0.01){
+    const r = 26;
+    const ex = ox + r*Math.cos(ang), ey = oy - r*Math.sin(ang);
+    g += '<path class="arc" d="M'+(ox+r).toFixed(1)+' '+oy.toFixed(1)+' A'+r+' '+r+' 0 '+(Math.abs(ang)>Math.PI?1:0)+' '+(ang>0?0:1)+' '+ex.toFixed(1)+' '+ey.toFixed(1)+'"/>';
+  }
+  const tipIn = [X(1),Y(0)], tipOut = [X(vo[0]),Y(vo[1])];
+  g += '<text class="vint" x="'+(tipIn[0]+8).toFixed(1)+'" y="'+(tipIn[1]-8).toFixed(1)+'">Vin</text>';
+  const close = Math.hypot(tipIn[0]-tipOut[0], tipIn[1]-tipOut[1])<30;
+  const right = vo[0]>=0;
+  g += '<text class="voutt" x="'+(tipOut[0]+(right?8:-8)).toFixed(1)+'" y="'+(tipOut[1]+(close?18:-8)).toFixed(1)+'" text-anchor="'+(right?'start':'end')+'">Vout</text>';
+  $('phasor').innerHTML = g;
+  $('phLegend').innerHTML = state.chain
+    ? els.map(e => '<span><i style="border-color:var(--'+e.toLowerCase()+')"></i>V<sub>'+e+'</sub>'+(c.out.indexOf(e)>=0?' (salida)':'')+'</span>').join('')
+    : '<span><i style="border-color:var(--ink)"></i>Vin (referencia)</span><span><i style="border-color:var(--out)"></i>Vout</span>';
+  $('phCap').textContent = 'Vin = 1∠0° V · Vout = '+(mag<1e-9?'0':mag.toFixed(3))+(mag<1e-9?'':'∠'+fmtDeg(ang*180/Math.PI))+' V';
+}
+
+/* ---------- Respuesta en el tiempo ---------- */
+function renderTime(tms){
+  const f = state.curF, T = 1/f;
+  const h = Hc(f), m = Math.hypot(h[0],h[1]), phi = Math.atan2(h[1],h[0]);
+  const anim = $('chkAnim').checked;
+  const t0 = anim ? (tms/1000)*0.35*T : 0, tw = 3*T;
+  const W=460, H=300, ml=46, mr=14, mt=16, mb=34, pw=W-ml-mr, ph=H-mt-mb;
+  const A = Math.max(1,m)*1.18;
+  const X = t => ml + (t-t0)/tw*pw, Y = v => mt + (A-v)/(2*A)*ph;
+  let g = '<defs><clipPath id="cpT"><rect x="'+ml+'" y="'+mt+'" width="'+pw+'" height="'+ph+'"/></clipPath></defs>';
+  const k0 = Math.ceil(t0/T-1e-9), k1 = Math.floor((t0+tw)/T+1e-9);
+  for(let k=k0;k<=k1;k++){
+    const x = X(k*T).toFixed(1);
+    g += '<line class="g2" x1="'+x+'" y1="'+mt+'" x2="'+x+'" y2="'+(mt+ph)+'"/>';
+    g += '<text class="tk" x="'+x+'" y="'+(H-14)+'" text-anchor="'+(+x>W-30?'end':(+x<ml+8?'start':'middle'))+'">'+(k===0?'0':fmtSI(k*T,'s'))+'</text>';
+  }
+  const levels = [0,1,-1]; if(m>1.02){ levels.push(m); levels.push(-m); }
+  levels.forEach(v => {
+    const y = Y(v).toFixed(1);
+    g += '<line class="'+(v===0?'g2':'g')+'" x1="'+ml+'" y1="'+y+'" x2="'+(W-mr)+'" y2="'+y+'"/>';
+    g += '<text class="tk" x="'+(ml-6)+'" y="'+(+y+4)+'" text-anchor="end">'+(v===0?'0':(v<0?'−':'')+parseFloat(Math.abs(v).toPrecision(2)))+'</text>';
+  });
+  g += '<text class="ax" transform="translate(12 '+(mt+ph/2)+') rotate(-90)" text-anchor="middle">Tensión (V)</text>';
+  g += '<text class="ax" x="'+(ml+pw/2)+'" y="'+(H-1)+'" text-anchor="middle">Tiempo</text>';
+  const N = 240; let di = '', dO = '';
+  for(let i=0;i<=N;i++){
+    const t = t0 + tw*i/N, a = TAU*f*t;
+    const px = X(t).toFixed(1);
+    di += (i?'L':'M')+px+' '+Y(Math.sin(a)).toFixed(1);
+    dO += (i?'L':'M')+px+' '+Y(m*Math.sin(a+phi)).toFixed(1);
+  }
+  g += '<g clip-path="url(#cpT)"><path class="tin" d="'+di+'"/><path class="tout" d="'+dO+'"/></g>';
+  $('timeplot').innerHTML = g;
+  const shift = -phi/TAU*T;
+  $('tCap').textContent = 'f = '+fmtSI(f,'Hz')+' · T = '+fmtSI(T,'s')+' · '+
+    (m<1e-9 ? 'la salida es nula' : 'Vout '+(phi<-1e-3?'se retrasa ':(phi>1e-3?'se adelanta ':'está en fase'))+(Math.abs(phi)>1e-3?fmtSI(Math.abs(shift),'s')+' respecto a Vin':''));
+}
+
+/* ---------- Render general ---------- */
+function renderAll(){
+  const d = derive(), r = curRange(d);
+  state.curF = clamp(state.curF, r[0], r[1]);
+  const an = analyze(d);
+  renderCircuit();
+  renderBode(d, an, r[0], r[1]);
+  renderHS(d);
+  renderMetrics(d, an);
+  renderPhasor();
+  renderTime(performance.now());
+}
+
+/* ---------- Eventos ---------- */
+document.querySelectorAll('#circSeg button').forEach(b => b.addEventListener('click', () => setCircuit(b.dataset.circ)));
+$('outs').addEventListener('click', e => {
+  const b = e.target.closest('.outbtn'); if(!b) return;
+  state.cfg = b.dataset.cfg;
+  document.querySelectorAll('#outs .outbtn').forEach(x => x.setAttribute('aria-pressed', String(x===b)));
+  renderAll();
+});
+$('chkAsym').addEventListener('change', e => { state.asym = e.target.checked; renderAll(); });
+$('chkChain').addEventListener('change', e => { state.chain = e.target.checked; renderAll(); });
+$('rangeSel').addEventListener('change', e => { state.range = e.target.value; renderAll(); });
+$('cur').addEventListener('input', e => {
+  const r = curRange(derive());
+  state.curF = Math.pow(10, Math.log10(r[0]) + (+e.target.value)/1000*(Math.log10(r[1])-Math.log10(r[0])));
+  renderAll();
+});
+$('goF0').addEventListener('click', () => { state.curF = derive().f0; renderAll(); });
+
+function bindDrag(id){
+  const svg = $(id); let drag = false;
+  const move = e => {
+    const rc = svg.getBoundingClientRect();
+    const x = (e.clientX-rc.left)/rc.width*760;
+    const t = clamp((x-58)/(760-58-16), 0, 1);
+    const r = curRange(derive());
+    state.curF = Math.pow(10, Math.log10(r[0]) + t*(Math.log10(r[1])-Math.log10(r[0])));
+    renderAll();
+  };
+  svg.addEventListener('pointerdown', e => { drag = true; try{ svg.setPointerCapture(e.pointerId); }catch(_){} move(e); });
+  svg.addEventListener('pointermove', e => { if(drag) move(e); });
+  const end = () => { drag = false; };
+  svg.addEventListener('pointerup', end);
+  svg.addEventListener('pointercancel', end);
+}
+bindDrag('bodeMag'); bindDrag('bodePh');
+
+let raf = 0;
+function loop(t){ renderTime(t); raf = requestAnimationFrame(loop); }
+$('chkAnim').addEventListener('change', e => {
+  cancelAnimationFrame(raf);
+  if(e.target.checked) raf = requestAnimationFrame(loop); else renderTime(0);
+});
+
+/* ---------- Arranque ---------- */
+buildParams();
+setCircuit('RC');
+})();
+</script>
+
+</body></html>
