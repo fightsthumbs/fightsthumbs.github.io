@@ -1,0 +1,435 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Espectro visible</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: una columna estrecha. Un bloque de color grande arriba, el deslizador sobre el espectro debajo, y las magnitudes físicas en cuadrícula. */
+  :root {
+    --bg: #eef0f3;
+    --surface: #ffffff;
+    --fg: #14181f;
+    --muted: #5b6573;
+    --line: #d3d8df;
+    --accent: #2a3a56;
+    --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --font-body: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+    --font-data: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1116;
+      --surface: #171b22;
+      --fg: #eceff4;
+      --muted: #97a1b0;
+      --line: #2b323d;
+      --accent: #a9b8d6;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1116;
+    --surface: #171b22;
+    --fg: #eceff4;
+    --muted: #97a1b0;
+    --line: #2b323d;
+    --accent: #a9b8d6;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.5;
+    padding-block: 32px 48px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  main { max-width: 720px; margin: 0 auto; display: grid; gap: 24px; }
+
+  header { display: grid; gap: 4px; }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.6rem, 5vw, 2.1rem);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    text-wrap: balance;
+  }
+  header p { margin: 0; color: var(--muted); max-width: 56ch; }
+
+  /* Bloque de color */
+  .swatch {
+    --swatch: rgb(0,0,0);
+    --swatch-fg: #fff;
+    background: var(--swatch);
+    color: var(--swatch-fg);
+    border-radius: 6px;
+    min-height: 220px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid var(--line);
+    transition: background-color 60ms linear;
+  }
+  .swatch .region {
+    font-family: var(--font-data);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .swatch .big {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .swatch .num {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(4rem, 17vw, 7rem);
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .swatch .unit {
+    font-family: var(--font-data);
+    font-size: 1.1rem;
+  }
+
+  /* Control */
+  .control {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px;
+    display: grid;
+    gap: 14px;
+  }
+  .control label {
+    font-family: var(--font-data);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .track-wrap { position: relative; height: 44px; }
+  .track-bg {
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 18px;
+    transform: translateY(-50%);
+    border-radius: 3px;
+    border: 1px solid var(--line);
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    background: transparent;
+    cursor: grab;
+  }
+  input[type="range"]:active { cursor: grabbing; }
+  input[type="range"]::-webkit-slider-runnable-track { background: transparent; height: 44px; }
+  input[type="range"]::-moz-range-track { background: transparent; height: 44px; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 8px;
+    height: 44px;
+    border-radius: 2px;
+    background: var(--fg);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--fg);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 4px;
+    height: 40px;
+    border-radius: 2px;
+    background: var(--fg);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--fg);
+  }
+  input[type="range"]:focus-visible { outline: none; }
+  input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 3px solid var(--accent); outline-offset: 3px; }
+  input[type="range"]:focus-visible::-moz-range-thumb { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  .scale {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-data);
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .presets button {
+    font-family: var(--font-data);
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--fg);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .presets button:hover { border-color: var(--fg); }
+  .presets button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .presets .dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--line); }
+
+  .step-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .step-row button {
+    font-family: var(--font-data);
+    font-size: 0.85rem;
+    color: var(--fg);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .step-row button:hover { border-color: var(--fg); }
+  .step-row button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .step-row span { color: var(--muted); font-size: 0.85rem; }
+
+  /* Datos */
+  dl.data {
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  dl.data > div { background: var(--surface); padding: 14px 16px; min-width: 0; }
+  dl.data dt {
+    font-family: var(--font-data);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  dl.data dd {
+    margin: 4px 0 0;
+    font-family: var(--font-data);
+    font-size: 1.15rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  dl.data dd small { font-size: 0.8rem; color: var(--muted); font-weight: 400; }
+  .hex-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .hex-row button {
+    font-family: var(--font-data);
+    font-size: 0.72rem;
+    color: var(--fg);
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+  .hex-row button:hover { border-color: var(--fg); }
+  .hex-row button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .note { margin: 0; font-size: 0.85rem; color: var(--muted); max-width: 62ch; }
+
+  @media (max-width: 460px) {
+    .swatch { min-height: 190px; padding: 16px; }
+    .control { padding: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .swatch { transition: none; }
+  }
+</style>
+
+<main>
+  <header>
+    <h1>Espectro visible</h1>
+    <p>Mueve el deslizador entre 400 y 700 nm para ver el color de cada longitud de onda.</p>
+  </header>
+
+  <section class="swatch" id="swatch" aria-live="polite">
+    <div class="region" id="region">Verde</div>
+    <div class="big">
+      <span class="num" id="num">550</span>
+      <span class="unit">nm</span>
+    </div>
+  </section>
+
+  <section class="control">
+    <label for="wl">Longitud de onda</label>
+    <div class="track-wrap">
+      <div class="track-bg" id="trackBg"></div>
+      <input type="range" id="wl" min="400" max="700" step="1" value="550" aria-describedby="scaleInfo">
+    </div>
+    <div class="scale" id="scaleInfo" aria-hidden="true">
+      <span>400</span><span>450</span><span>500</span><span>550</span><span>600</span><span>650</span><span>700</span>
+    </div>
+    <div class="step-row">
+      <button type="button" id="minus" aria-label="Restar 1 nanómetro">−1 nm</button>
+      <button type="button" id="plus" aria-label="Sumar 1 nanómetro">+1 nm</button>
+      <span>También funcionan las flechas del teclado.</span>
+    </div>
+    <div class="presets" id="presets" role="group" aria-label="Longitudes de onda frecuentes"></div>
+  </section>
+
+  <dl class="data">
+    <div><dt>Frecuencia</dt><dd id="freq">—</dd></div>
+    <div><dt>Energía del fotón</dt><dd id="energy">—</dd></div>
+    <div><dt>RGB</dt><dd id="rgb">—</dd></div>
+    <div>
+      <dt>Hex</dt>
+      <dd class="hex-row"><span id="hex">—</span><button type="button" id="copy">Copiar</button></dd>
+    </div>
+  </dl>
+
+  <p class="note">Una pantalla solo mezcla rojo, verde y azul, así que el color mostrado es una aproximación del color espectral puro. Los extremos de 400 y 700 nm se ven más oscuros porque el ojo humano es menos sensible allí.</p>
+</main>
+
+<script>
+(function () {
+  var C = 299792.458;      // c en nm·THz  (c / λ da THz con λ en nm)
+  var HC = 1239.84198;     // h·c en eV·nm
+
+  // Conversión longitud de onda → RGB (aproximación de Dan Bruton)
+  function wavelengthToRGB(w) {
+    var r = 0, g = 0, b = 0;
+    if (w >= 380 && w < 440) { r = -(w - 440) / 60; g = 0; b = 1; }
+    else if (w < 490) { r = 0; g = (w - 440) / 50; b = 1; }
+    else if (w < 510) { r = 0; g = 1; b = -(w - 510) / 20; }
+    else if (w < 580) { r = (w - 510) / 70; g = 1; b = 0; }
+    else if (w < 645) { r = 1; g = -(w - 645) / 65; b = 0; }
+    else if (w <= 780) { r = 1; g = 0; b = 0; }
+    var f = 1;
+    if (w < 420) f = 0.3 + 0.7 * (w - 380) / 40;
+    else if (w > 645) f = 0.3 + 0.7 * (780 - w) / 135;
+    var gamma = 0.8;
+    function ch(c) { return c === 0 ? 0 : Math.round(255 * Math.pow(c * f, gamma)); }
+    return [ch(r), ch(g), ch(b)];
+  }
+
+  function regionName(w) {
+    if (w < 450) return "Violeta";
+    if (w < 495) return "Azul";
+    if (w < 570) return "Verde";
+    if (w < 590) return "Amarillo";
+    if (w < 620) return "Naranja";
+    return "Rojo";
+  }
+
+  function hex(rgb) {
+    return "#" + rgb.map(function (v) { return v.toString(16).padStart(2, "0"); }).join("").toUpperCase();
+  }
+
+  function luminance(rgb) {
+    function lin(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+    return 0.2126 * lin(rgb[0]) + 0.7152 * lin(rgb[1]) + 0.0722 * lin(rgb[2]);
+  }
+
+  var fmt = function (n, d) { return n.toLocaleString("es", { minimumFractionDigits: d, maximumFractionDigits: d }); };
+
+  var slider = document.getElementById("wl");
+  var swatch = document.getElementById("swatch");
+  var elNum = document.getElementById("num");
+  var elRegion = document.getElementById("region");
+  var elFreq = document.getElementById("freq");
+  var elEnergy = document.getElementById("energy");
+  var elRgb = document.getElementById("rgb");
+  var elHex = document.getElementById("hex");
+  var copyBtn = document.getElementById("copy");
+  var currentHex = "";
+
+  // Fondo del deslizador: el espectro completo
+  var stops = [];
+  for (var w = 400; w <= 700; w += 5) {
+    var c = wavelengthToRGB(w);
+    stops.push("rgb(" + c.join(",") + ") " + ((w - 400) / 3).toFixed(2) + "%");
+  }
+  document.getElementById("trackBg").style.background = "linear-gradient(to right, " + stops.join(", ") + ")";
+
+  // Atajos
+  var presets = [
+    [405, "Láser violeta"],
+    [450, "Azul"],
+    [532, "Láser verde"],
+    [589, "Sodio"],
+    [633, "Láser He-Ne"],
+    [700, "Rojo profundo"]
+  ];
+  var presetsEl = document.getElementById("presets");
+  presets.forEach(function (p) {
+    var btn = document.createElement("button");
+    btn.type = "button";
+    var dot = document.createElement("span");
+    dot.className = "dot";
+    dot.style.background = "rgb(" + wavelengthToRGB(p[0]).join(",") + ")";
+    btn.appendChild(dot);
+    btn.appendChild(document.createTextNode(p[0] + " nm · " + p[1]));
+    btn.addEventListener("click", function () { slider.value = p[0]; update(); });
+    presetsEl.appendChild(btn);
+  });
+
+  function update() {
+    var w = parseInt(slider.value, 10);
+    var rgb = wavelengthToRGB(w);
+    var h = hex(rgb);
+    currentHex = h;
+    swatch.style.setProperty("--swatch", "rgb(" + rgb.join(",") + ")");
+    swatch.style.setProperty("--swatch-fg", luminance(rgb) > 0.22 ? "#0b0e13" : "#ffffff");
+    elNum.textContent = w;
+    elRegion.textContent = regionName(w);
+    elFreq.innerHTML = fmt(C / w, 1) + " <small>THz</small>";
+    elEnergy.innerHTML = fmt(HC / w, 3) + " <small>eV</small>";
+    elRgb.textContent = rgb.join(", ");
+    elHex.textContent = h;
+    slider.setAttribute("aria-valuetext", w + " nanómetros, " + regionName(w).toLowerCase());
+  }
+
+  slider.addEventListener("input", update);
+  document.getElementById("minus").addEventListener("click", function () {
+    slider.value = Math.max(400, parseInt(slider.value, 10) - 1); update();
+  });
+  document.getElementById("plus").addEventListener("click", function () {
+    slider.value = Math.min(700, parseInt(slider.value, 10) + 1); update();
+  });
+
+  copyBtn.addEventListener("click", function () {
+    function done(ok) {
+      copyBtn.textContent = ok ? "Copiado" : "Selecciona el código";
+      setTimeout(function () { copyBtn.textContent = "Copiar"; }, 1500);
+    }
+    try {
+      navigator.clipboard.writeText(currentHex).then(function () { done(true); }, function () {
+        var r = document.createRange(); r.selectNodeContents(elHex);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done(false);
+      });
+    } catch (e) {
+      var r = document.createRange(); r.selectNodeContents(elHex);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done(false);
+    }
+  });
+
+  update();
+})();
+</script>
+
+</body></html>
